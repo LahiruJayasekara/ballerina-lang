@@ -37,6 +37,9 @@ public class BallerinaStreamsV2JoinTest {
     private CompileResult result;
     private CompileResult resultWithAlias;
     private CompileResult resultWithoutOnCondition;
+    private CompileResult resultWithFullOuterJoin;
+    private CompileResult resultWithLeftOuterJoin;
+    private CompileResult resultWithRightOuterJoin;
 
     @BeforeClass
     public void setup() {
@@ -45,6 +48,13 @@ public class BallerinaStreamsV2JoinTest {
         resultWithAlias = BCompileUtil.compile("test-src/streaming/alias/streamingv2-join-test.bal");
         resultWithoutOnCondition = BCompileUtil.
                 compile("test-src/streaming/streamingv2-join-without-on-condition-test.bal");
+        resultWithFullOuterJoin = BCompileUtil.
+                compile("test-src/streaming/streamingv2-full-outer-join-test.bal");
+        resultWithLeftOuterJoin = BCompileUtil.
+                compile("test-src/streaming/streamingv2-left-outer-join-test.bal");
+        resultWithRightOuterJoin = BCompileUtil.
+                compile("test-src/streaming/streamingv2-right-outer-join-test.bal");
+
     }
 
     @Test(description = "Test stream join query.")
@@ -100,5 +110,66 @@ public class BallerinaStreamsV2JoinTest {
 
         Assert.assertEquals(stock3.get("symbol").stringValue(), "WSO2");
         Assert.assertEquals(((BFloat) stock3.get("price")).floatValue(), 58.6);
+    }
+
+    @Test(description = "Test stream join query with full outer join.")
+    public void testStreamFullOuterJoinQuery() {
+        System.setProperty("enable.siddhiRuntime", "true");
+        BValue[] stocksWithPrices = BRunUtil.invoke(resultWithFullOuterJoin, "startJoinQuery");
+        Assert.assertNotNull(stocksWithPrices);
+        Assert.assertEquals(stocksWithPrices.length, 4, "Expected events are not received");
+
+        BMap<String, BValue> stock1 = (BMap<String, BValue>) stocksWithPrices[0];
+        BMap<String, BValue> stock2 = (BMap<String, BValue>) stocksWithPrices[1];
+        BMap<String, BValue> stock3 = (BMap<String, BValue>) stocksWithPrices[2];
+        BMap<String, BValue> stock4 = (BMap<String, BValue>) stocksWithPrices[3];
+
+        Assert.assertEquals(stock1.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock1.get("price")).floatValue(), 55.6);
+
+        Assert.assertEquals(stock2.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock2.get("price")).floatValue(), 55.6);
+
+        Assert.assertEquals(stock3.get("symbol").stringValue(), "MBI");
+        Assert.assertEquals(((BFloat) stock3.get("price")).floatValue(), 74.6);
+
+        Assert.assertEquals(stock4.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock4.get("price")).floatValue(), 58.6);
+    }
+
+    @Test(description = "Test stream join query with left outer join.")
+    public void testStreamLeftOuterJoinQuery() {
+        System.setProperty("enable.siddhiRuntime", "true");
+        BValue[] stocksWithPrices = BRunUtil.invoke(resultWithLeftOuterJoin, "startJoinQuery");
+        Assert.assertNotNull(stocksWithPrices);
+        Assert.assertEquals(stocksWithPrices.length, 3, "Expected events are not received");
+
+        BMap<String, BValue> stock1 = (BMap<String, BValue>) stocksWithPrices[0];
+        BMap<String, BValue> stock2 = (BMap<String, BValue>) stocksWithPrices[1];
+        BMap<String, BValue> stock3 = (BMap<String, BValue>) stocksWithPrices[2];
+
+        Assert.assertEquals(stock1.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock1.get("price")).floatValue(), 55.6);
+
+        Assert.assertEquals(stock2.get("symbol").stringValue(), "MBI");
+        Assert.assertEquals(((BFloat) stock2.get("price")).floatValue(), 74.6);
+
+        Assert.assertEquals(stock3.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock3.get("price")).floatValue(), 58.6);
+
+    }
+
+    @Test(description = "Test stream join query with right outer join.")
+    public void testStreamRightOuterJoinQuery() {
+        System.setProperty("enable.siddhiRuntime", "true");
+        BValue[] stocksWithPrices = BRunUtil.invoke(resultWithRightOuterJoin, "startJoinQuery");
+        Assert.assertNotNull(stocksWithPrices);
+        Assert.assertEquals(stocksWithPrices.length, 1, "Expected events are not received");
+
+        BMap<String, BValue> stock1 = (BMap<String, BValue>) stocksWithPrices[0];
+
+        Assert.assertEquals(stock1.get("symbol").stringValue(), "WSO2");
+        Assert.assertEquals(((BFloat) stock1.get("price")).floatValue(), 55.6);
+
     }
 }
